@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS Icon-->
+    <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!--    CSS-->
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!--JQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>LogBoard</title>
+    <style>
+        /* 메시지 알림 스타일 추가 */
+        .alert {
+          padding: 15px;
+          margin-bottom: 20px;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          text-align: center;
+        }
+
+        .alert-success {
+          color: #155724;
+          background-color: #d4edda;
+          border-color: #c3e6cb;
+        }
+
+        .alert-error {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* 고정 사이드바 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+        /* 메인 패널 기본 설정: 사이드바 너비 만큼 왼쪽 마진 */
+        .main-panel {
+          transition: margin-left 0.3s ease;
+        }
+        .page-body-wrapper {
+            margin-right: 0px;
+        }
+
+        .filter-form {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+        .stats-summary {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .stats-card {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+    <!-- 분리한 사이드바(fragment) 포함 -->
+    <div th:replace="~{layout/sidebarinproject :: sidebar}"></div>
+    <div class="container-fluid page-body-wrapper">
+        <!-- 분리한 네비게이션 바(fragment) 포함 -->
+        <div th:replace="~{layout/navbar :: navbar}"></div>
+        <div class="main-panel">
+            <div class="content-wrapper"><!--여기부터-->
+
+                <!-- 페이지 제목 영역 -->
+                <h2 layout:fragment="page-title">시간별 활동 통계</h2>
+
+                <!-- 페이지 내용 영역 -->
+                <div layout:fragment="content">
+                    <!-- 필터 폼 -->
+                    <div class="card mb-4">
+                        <div class="card-body filter-form">
+                            <form th:action="@{/admin/monitoring/time-stats}" method="get" class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="startDate" class="form-label">시작일</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="endDate" class="form-label">종료일</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i> 조회
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 시간대별 활동량 차트 -->
+                    <div class="card stats-card">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">시간대별 활동량</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <p class="text-muted mb-0">각 시간대별 활동량을 확인하여 사용자들의, 활동 패턴을 파악할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 일별 활동 통계 차트 -->
+                    <div class="card stats-card">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">일별 활동 추세</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="dailyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <p class="text-muted mb-0">기간 내 일별 활동 추세를 확인할 수 있습니다. 특정 일자에 활동이 급증하는 패턴을 파악하세요.</p>
+                        </div>
+                    </div>
+
+                    <!-- 요일별 활동 분포 요약 (추가 옵션) -->
+                    <div class="card stats-card">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">요일별 활동 분포</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>월요일</h5>
+                                        <div class="stats-number" id="monday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>화요일</h5>
+                                        <div class="stats-number" id="tuesday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>수요일</h5>
+                                        <div class="stats-number" id="wednesday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>목요일</h5>
+                                        <div class="stats-number" id="thursday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>금요일</h5>
+                                        <div class="stats-number" id="friday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>토요일</h5>
+                                        <div class="stats-number" id="saturday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>일요일</h5>
+                                        <div class="stats-number" id="sunday-count">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <h5>일평균</h5>
+                                        <div class="stats-number" id="avg-count">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!--여기까지-->
+        </div>
+    </div>
+</div>
+</div>
+
+<!--Layout 필수 자바스크립트 경로-->
+<!-- base:js -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<!-- endinject -->
+<!-- plugin js for this page -->
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page -->
+<!-- Custom js for this page-->
+<script src="/js/dashboard.js"></script>
+<!-- End custom js for this page-->
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // 시간대별 활동량 차트
+        const hourlyStats = /*[[${hourlyStats}]]*/ { labels: [], counts: [] };
+
+        // 데이터가 비어있는지 확인하고 기본값 설정
+        if (!hourlyStats || !hourlyStats.labels || hourlyStats.labels.length === 0) {
+            // 기본 시간 레이블 생성 (0시 ~ 23시)
+            const defaultLabels = [];
+            const defaultCounts = [];
+            for (let i = 0; i < 24; i++) {
+                defaultLabels.push(i + '시');
+                defaultCounts.push(0);
+            }
+            hourlyStats.labels = defaultLabels;
+            hourlyStats.counts = defaultCounts;
+        }
+
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: hourlyStats.labels,
+                datasets: [{
+                    label: '시간별 활동 수',
+                    data: hourlyStats.counts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '시간대별 사용자 활동량'
+                    }
+                }
+            }
+        });
+
+        // 일별 활동 통계 차트
+        const dailyStats = /*[[${dailyStats}]]*/ { labels: [], counts: [] };
+
+        // 데이터가 비어있는지 확인하고 기본값 설정
+        if (!dailyStats || !dailyStats.labels || dailyStats.labels.length === 0) {
+            // 기본값으로 오늘 날짜 하나만 표시
+            const today = new Date();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dailyStats.labels = [month + '-' + day];
+            dailyStats.counts = [0];
+        }
+
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyStats.labels,
+                datasets: [{
+                    label: '일별 활동 수',
+                    data: dailyStats.counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '일별 활동 추세'
+                    }
+                }
+            }
+        });
+
+        // 요일별 활동 계산 개선
+        if (dailyStats && dailyStats.labels) {
+            const dayCount = {
+                0: 0, // 일요일
+                1: 0, // 월요일
+                2: 0, // 화요일
+                3: 0, // 수요일
+                4: 0, // 목요일
+                5: 0, // 금요일
+                6: 0  // 토요일
+            };
+
+            const dayTotals = {
+                0: 0, // 일요일
+                1: 0, // 월요일
+                2: 0, // 화요일
+                3: 0, // 수요일
+                4: 0, // 목요일
+                5: 0, // 금요일
+                6: 0  // 토요일
+            };
+
+            let totalActivities = 0;
+            let daysWithActivity = 0;
+
+            // 현재 연도를 사용하여 날짜 문자열을 Date 객체로 변환
+            const currentYear = new Date().getFullYear();
+
+            // 날짜 문자열을 Date 객체로 변환하여 요일 계산
+            dailyStats.labels.forEach((label, index) => {
+                try {
+                    // MM-dd 형식의 문자열을 날짜로 변환
+                    const parts = label.split('-');
+                    if (parts.length === 2) {
+                        const dateStr = currentYear + '-' + parts[0] + '-' + parts[1];
+                        const date = new Date(dateStr);
+
+                        if (!isNaN(date.getTime())) { // 유효한 날짜인지 확인
+                            const dayOfWeek = date.getDay();  // 0(일요일)부터 6(토요일)
+                            const count = dailyStats.counts[index] || 0;
+
+                            dayCount[dayOfWeek]++;  // 해당 요일 데이터 개수 증가
+                            dayTotals[dayOfWeek] += count;  // 해당 요일 활동 수 합산
+
+                            totalActivities += count;
+                            if (count > 0) daysWithActivity++;
+                        }
+                    }
+                } catch (e) {
+                    console.error('날짜 변환 오류:', e);
+                }
+            });
+
+            // 요일별 평균 계산 (데이터가 없는 경우 0으로 표시)
+            const dayAverages = {
+                0: dayCount[0] > 0 ? Math.round(dayTotals[0] / dayCount[0]) : 0,
+                1: dayCount[1] > 0 ? Math.round(dayTotals[1] / dayCount[1]) : 0,
+                2: dayCount[2] > 0 ? Math.round(dayTotals[2] / dayCount[2]) : 0,
+                3: dayCount[3] > 0 ? Math.round(dayTotals[3] / dayCount[3]) : 0,
+                4: dayCount[4] > 0 ? Math.round(dayTotals[4] / dayCount[4]) : 0,
+                5: dayCount[5] > 0 ? Math.round(dayTotals[5] / dayCount[5]) : 0,
+                6: dayCount[6] > 0 ? Math.round(dayTotals[6] / dayCount[6]) : 0
+            };
+
+            // 전체 일평균 계산
+            const dailyAverage = daysWithActivity > 0 ? Math.round(totalActivities / daysWithActivity) : 0;
+
+            // HTML에 데이터 표시
+            document.getElementById('monday-count').textContent = dayAverages[1];
+            document.getElementById('tuesday-count').textContent = dayAverages[2];
+            document.getElementById('wednesday-count').textContent = dayAverages[3];
+            document.getElementById('thursday-count').textContent = dayAverages[4];
+            document.getElementById('friday-count').textContent = dayAverages[5];
+            document.getElementById('saturday-count').textContent = dayAverages[6];
+            document.getElementById('sunday-count').textContent = dayAverages[0];
+            document.getElementById('avg-count').textContent = dailyAverage;
+
+            // 디버깅을 위한 로그
+            console.log('처리된 날짜 레이블:', dailyStats.labels);
+            console.log('처리된 활동 수:', dailyStats.counts);
+            console.log('요일별 데이터 수:', dayCount);
+            console.log('요일별 활동 합계:', dayTotals);
+            console.log('요일별 평균:', dayAverages);
+        }
+    });
+</script>
+
+</body>
+</html>
+

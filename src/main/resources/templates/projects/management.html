@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS Icon-->
+    <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!--    CSS-->
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!--JQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="shortcut icon" href="../../images/favicon.png" />
+    <title>Ddait 사람들을 따듯하게 잇다</title>
+    <style>
+        /* 메시지 알림 스타일 추가 */
+        .alert {
+          padding: 15px;
+          margin-bottom: 20px;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          text-align: center;
+        }
+
+        .alert-success {
+          color: #155724;
+          background-color: #d4edda;
+          border-color: #c3e6cb;
+        }
+
+        .alert-error {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* 고정 사이드바 */
+            .sidebar {
+                position: fixed;
+                bottom: 0px;
+                height: 100vh;
+                overflow-y: auto;
+            }
+        /* 메인 패널 기본 설정: 사이드바 너비 만큼 왼쪽 마진 */
+        .main-panel {
+          transition: margin-left 0.3s ease;
+        }
+        .page-body-wrapper {
+            margin-right: 0px;
+        }
+        .container {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /*h1, h2, h3 {*/
+        /*    color: #333;*/
+        /*}*/
+        form div {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .user-box {
+            display: inline-block;
+            width: 250px;
+            padding: 20px;
+            margin-bottom: 10px;
+            border: 1px solid #6640b2;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .user-box:hover {
+            background-color: #e0d9f0;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+    <!-- 분리한 사이드바(fragment) 포함 -->
+    <div th:replace="~{layout/sidebarinproject :: sidebar}"></div>
+    <div class="container-fluid page-body-wrapper">
+        <!-- 분리한 네비게이션 바(fragment) 포함 -->
+        <div th:replace="~{layout/navbar :: navbar}"></div>
+        <div class="main-panel">
+            <div class="content-wrapper"><!--여기부터-->
+                <div class="table-responsive mb-3">
+                    <h1>Project Settings</h1>
+                </div>
+                <div class="mb-3">
+                    <div class="table-responsive mb-3">
+                        <h5>Project Member</h5>
+                    </div>
+                    <div class="mb-3 flex-nowrap p-3" style="min-height: 200px; background-color: #ffffff; border: #9f9f9f 1px solid;">
+                        <!-- 프로젝트 멤버 user-box 반복 -->
+                        <div class="user-box"
+                             th:each="member : ${projectMembers}">
+                            <p><strong th:text="${member.user.name}"></strong> User Name</p>
+                            <p th:text="${member.user.email}">user@example.com</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive mb-3"
+                         th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                        <h5>Invite Member</h5>
+                    </div>
+                    <div class="mb-3 p-3" style="min-height: 200px; background-color: #ffffff; border: #9f9f9f 1px solid;"
+                         th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                        <form style="border: none; margin-bottom: 0px;" id="userSearchForm" method="get"
+                              th:action="@{/projects/{projectId}/management/search(projectId=${projectId})}"
+                              th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                            <div class="d-flex mb-3">
+                                <input type="text" name="query" placeholder="이메일 또는 이름 입력" required style="flex: 1;">
+                                <!-- 현재 로그인한 사용자의 이메일을 hidden으로 추가 -->
+                                <input type="hidden" name="currentUserEmail"
+                                       th:value="${#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) ? #authentication.principal.attributes['email'] : #authentication.principal.username}">
+                                <button class="btn btn-primary" type="submit" onclick="openUserSearchModal(event)">검색</button>
+                            </div>
+                        </form>
+
+                    <!-- 초대 메일 전송 폼 -->
+                        <form id="inviteForm" method="post"
+                              th:action="@{/projects/{projectId}/management/invitations/create(projectId=${projectId})}"
+                              th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                            <h5>Selected User</h5>
+                            <div id="selectedUsersContainer" style="border: #9f9f9f 1px solid; padding: 10px; min-height: 50px; background-color: #efefef">
+                                <!-- 선택된 사용자 카드가 JavaScript로 추가됨 -->
+                                <!-- 프로젝트 ID 전달 -->
+                                <input type="hidden" name="projectId" th:value="${projectId}">
+                                <!-- 선택된 사용자 이메일들을 콤마로 구분하여 hidden input에 저장 -->
+                                <input type="hidden" id="selectedUsersEmails" name="emails" value="">
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                                <button type="submit" class="btn btn-inverse-primary btn-fw">초대 메일 전송</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!--프로젝트멤버 권한 변경 및 추방-->
+                    <div class="table-responsive mb-3" style="min-height: 200px; background-color: #ffffff; border: #9f9f9f 1px solid;"
+                         th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th class="text-center">번호</th>
+                                <th class="text-center">이름</th>
+                                <th class="text-center">이메일</th>
+                                <th class="text-center">멤버 권한</th>
+                                <th class="text-center">멤버 추방</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="member, iterStat : ${projectMembers}"
+                                th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                                <td th:text="${iterStat.index + 1}">번호</td>
+                                <td th:text="${member.user.name}">이름</td>
+                                <td th:text="${member.user.email}">이메일</td>
+<!--                                <td class="text-center">-->
+<!--                                    &lt;!&ndash; 권한 변경용 폼 &ndash;&gt;-->
+<!--                                    <form th:action="@{'/projects/' + ${project.id} + '/management/updateMemberRole/' + ${member.id.userId}}" method="post">-->
+<!--                                        <select name="projectRole" class="btn btn-sm btn-outline-secondary dropdown-toggle">-->
+<!--                                            <option value="Member" th:selected="${member.projectRole.name() == 'Member'}">Member</option>-->
+<!--                                            <option value="Leader" th:selected="${member.projectRole.name() == 'Leader'}">Leader</option>-->
+<!--                                            <option value="Admin" th:if="${projectRole.name() == 'Admin'}" th:selected="${member.projectRole.name() == 'Admin'}">Admin</option>-->
+<!--                                        </select>-->
+<!--                                        <button type="submit" class="btn btn-sm btn-outline-warning">멤버 권한 변경</button>-->
+<!--                                    </form>-->
+<!--                                </td>-->
+                                <td class="text-center">
+                                    <!-- 만약 현재 사용자가 Admin이거나, 대상 멤버의 역할이 Admin이 아닌 경우에만 역할 변경 폼을 표시 -->
+                                    <div th:if="${projectRole.name() == 'Admin' or member.projectRole.name() != 'Admin'}">
+                                        <!-- 권한 변경용 폼 -->
+                                        <form th:action="@{'/projects/' + ${project.id} + '/management/updateMemberRole/' + ${member.id.userId}}" method="post">
+                                            <select name="projectRole" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                                                <option value="Member" th:selected="${member.projectRole.name() == 'Member'}">Member</option>
+                                                <option value="Leader" th:selected="${member.projectRole.name() == 'Leader'}">Leader</option>
+                                                <option value="Admin" th:if="${projectRole.name() == 'Admin'}" th:selected="${member.projectRole.name() == 'Admin'}">Admin</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">멤버 권한 변경</button>
+                                        </form>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <!-- 삭제 버튼(추방 버튼) -->
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            onclick="showKickModal(this)"
+                                            th:attr="data-user-id=${member.user.id}, data-user-name=${member.user.name}">
+                                        추방
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!--프로젝트 나가기 폼-->
+                    <form th:action="@{/projects/{projectId}/management/exit(projectId=${projectId})}" method="post" style="display:inline;"
+                          th:if="${projectRole != null && projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Member.name()}">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('정말 프로젝트에서 나가시겠습니까?');">
+                            프로젝트 나가기
+                        </button>
+                    </form>
+
+                    <!-- 프로젝트 삭제 폼 -->
+                    <form style="border: none;" th:action="@{/projects/delete/{projectId}(projectId=${projectId})}" method="post"
+                          th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#projectEditModal">
+                                프로젝트 수정
+                            </button>
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('정말 프로젝트를 삭제하시겠습니까?');">
+                                프로젝트 삭제
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 추방 모달 (Bootstrap Modal) -->
+                <div class="modal fade" id="kickModal" tabindex="-1" aria-labelledby="kickModalLabel" aria-hidden="true"
+                     th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="kickModalLabel">멤버 추방 확인</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p id="kickModalMessage">프로젝트에서 추방하시겠습니까?</p>
+                            </div>
+                            <!-- 버튼을 모달 메시지 우측 하단에 배치 -->
+                            <div class="modal-footer justify-content-end">
+                                <!-- 추방 폼: projectId는 PathVariable로 처리되도록 thymeleaf URL 사용 -->
+                                <form id="kickMemberForm"
+                                      th:action="@{/projects/{projectId}/management/invitations/kickMember(projectId=${projectId})}"
+                                      method="post">
+                                    <input type="hidden" name="userId" id="kickUserId"/>
+                                    <button type="submit" class="btn btn-danger">멤버 추방</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 유저 검색 결과 모달  aria-hidden="true"-->
+            <div class="modal fade" id="userSearchModal" tabindex="-1" aria-labelledby="userSearchModalLabel"
+                 th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="userSearchModalLabel">사용자 검색 결과</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div th:if="${#lists.isEmpty(users)}">
+                                <p>검색 결과가 없습니다.</p>
+                            </div>
+                            <turbo-frame id="search-results">
+                                <div th:fragment="searchResults">
+                                    <div th:if="${!#lists.isEmpty(users)}">
+                                        <ul class="list-group">
+                                            <!-- 현재 로그인한 사용자가 아닌 사용자만 표시 -->
+                                            <li th:each="user : ${users}"
+                                                th:if="${!user.email.equals(
+                                          #authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User)
+                                          ? #authentication.principal.attributes['email']
+                                          : #authentication.principal.username)}"
+                                                class="list-group-item"
+                                                th:attr="data-user-email=${user.email}, data-user-name=${user.name}"
+                                                onclick="selectUser(this)"
+                                                style="cursor: pointer;">
+                                                <strong th:text="${user.name}">User Name</strong>
+                                                <span th:text="'[' + ${user.email} + ']'">user@example.com</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </turbo-frame>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 프로젝트 수정 모달  aria-hidden="true"-->
+        <div class="modal fade" id="projectEditModal" tabindex="-1" aria-labelledby="projectEditModalLabel"
+             th:if="${projectRole != null and (projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Leader.name() or projectRole.name() == T(com.example.demo.domain.entity.ProjectRole).Admin.name())}">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="projectEditModalLabel">프로젝트 수정</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form th:action="@{/projects/{projectId}/management/edit(projectId=${projectId})}" method="post"
+                              th:object="${projectRequest}">
+                            <div class="mb-3">
+                                <label for="projectName" class="form-label">프로젝트 이름</label>
+                                <!--                            <input type="text" class="form-control" id="projectName" name="projectName" placeholder="프로젝트 이름 입력" required th:value="${project.projectName}">-->
+                                <input type="text"
+                                       class="form-control"
+                                       th:field="*{projectName}"
+                                       th:classappend="${#fields.hasErrors('projectName')} ? ' is-invalid' : ''"
+                                       id="projectName"
+                                       placeholder="프로젝트 이름을 입력하세요">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('projectName')}"
+                                     th:errors="*{projectName}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">프로젝트 설명</label>
+                                <!--                            <textarea class="form-control" id="description" name="description" placeholder="프로젝트 설명 입력" rows="4" required th:text="${project.description}"></textarea>-->
+                                <textarea class="form-control"
+                                          th:field="*{description}"
+                                          th:classappend="${#fields.hasErrors('description')} ? ' is-invalid' : ''"
+                                          id="description"
+                                          rows="4"
+                                          placeholder="프로젝트에 대한 설명을 입력하세요"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">시작일</label>
+                                <!--                            <input type="date" class="form-control" id="startDate" name="startDate" required th:value="${#dates.format(project.startDate, 'yyyy-MM-dd')}">-->
+                                <input type="date"
+                                       class="form-control"
+                                       th:field="*{startDate}"
+                                       th:classappend="${#fields.hasErrors('startDate')} ? ' is-invalid' : ''"
+                                       id="startDate">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}"
+                                     th:errors="*{startDate}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">종료일</label>
+                                <!--                            <input type="date" class="form-control" id="endDate" name="endDate" required th:value="${#dates.format(project.endDate, 'yyyy-MM-dd')}">-->
+                                <input type="date"
+                                       class="form-control"
+                                       th:field="*{endDate}"
+                                       th:classappend="${#fields.hasErrors('endDate')} ? ' is-invalid' : ''"
+                                       id="endDate">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}"
+                                     th:errors="*{endDate}"></div>
+                            </div>
+
+                            <!-- 프로젝트 상태 선택 -->
+                            <div class="mb-3">
+                                <label for="status" class="form-label">프로젝트 상태</label>
+                                <select class="form-select"
+                                        th:field="*{status}"
+                                        id="status">
+                                    <option value="">-- 선택 --</option>
+                                    <option th:each="status : ${T(com.example.demo.domain.entity.ProjectStatus).values()}"
+                                            th:value="${status}"
+                                            th:text="${status}"
+                                            th:selected="${projectRequest.status != null ? projectRequest.status.name() == status.name() : status.name() == T(com.example.demo.domain.entity.ProjectStatus).PLANNING.name()}">
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                                <button type="submit" class="btn btn-primary">프로젝트 수정</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div><!--여기까지-->
+    </div>
+</div>
+</div>
+</div>
+<script>
+    // 모달 관련 함수들을 전역 스코프로 정의
+    function showKickModal(element) {
+        // user-box에 저장된 사용자 정보 읽어오기
+        var userId = element.getAttribute("data-user-id");
+        var userName = element.getAttribute("data-user-name");
+
+        // 추방할 사용자 ID를 숨겨진 input에 설정
+        document.getElementById("kickUserId").value = userId;
+
+        // 모달 메시지
+        var modalMsg = document.getElementById("kickModalMessage");
+        modalMsg.innerText = userName + " 님을 프로젝트에서 추방하시겠습니까?";
+
+        // 부트스트랩 모달 띄우기
+        var kickModal = new bootstrap.Modal(document.getElementById('kickModal'));
+        kickModal.show();
+    }
+
+    // 검색 폼 제출 시 기본 제출 동작을 막고, Ajax로 검색 결과를 로드한 후 모달을 띄움
+    function openUserSearchModal(event) {
+        event.preventDefault();
+        const form = document.getElementById('userSearchForm');
+        const formData = new FormData(form);
+        const queryString = new URLSearchParams(formData).toString();
+
+        fetch(form.action + "?" + queryString)
+            .then(response => response.text())
+            .then(html => {
+                // 검색 결과가 포함된 HTML을 모달 내용 부분에 넣음
+                document.querySelector('#userSearchModal .modal-body').innerHTML = html;
+                // 모달을 띄움 (Bootstrap 5 기준)
+                const userSearchModal = new bootstrap.Modal(document.getElementById('userSearchModal'));
+                userSearchModal.show();
+            })
+            .catch(error => console.error('Error fetching search results:', error));
+    }
+
+    // 선택된 사용자 처리
+    let selectedUsers = [];
+    function selectUser(element) {
+        const userName = element.getAttribute("data-user-name");
+        const userEmail = element.getAttribute("data-user-email");
+
+        if (selectedUsers.find(user => user.email === userEmail)) {
+            alert("이미 선택된 사용자입니다.");
+            return;
+        }
+
+        selectedUsers.push({ name: userName, email: userEmail });
+        updateSelectedUsersInput();
+
+        const container = document.getElementById("selectedUsersContainer");
+        const card = document.createElement("div");
+        card.className = "selected-user-card";
+        card.id = "user-card-" + userEmail;
+
+        card.innerHTML = `<div style="border-radius: 5px; background-color: #ffffff; padding: 10px;">
+        <span><strong>${userName}</strong> (${userEmail})</span>
+        <button type="button" class="btn btn-danger py-0 px-2 float-end" onclick="removeUser('${userEmail}')">x</button>
+        </div>`;
+        container.appendChild(card);
+
+        // 모달 닫기 (Bootstrap 5 사용 시)
+        const modalElement = document.getElementById('userSearchModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+    }
+
+    function updateSelectedUsersInput() {
+        const emails = selectedUsers.map(u => u.email).join(",");
+        document.getElementById("selectedUsersEmails").value = emails;
+    }
+
+    function removeUser(email) {
+        selectedUsers = selectedUsers.filter(u => u.email !== email);
+        updateSelectedUsersInput();
+        const card = document.getElementById("user-card-" + email);
+        if (card) {
+            card.remove();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('inviteForm').onsubmit = function (e) {
+            e.preventDefault();
+
+            // 선택된 사용자가 없는 경우 체크
+            if (selectedUsers.length === 0) {
+                alert('초대할 사용자를 선택해주세요.');
+                return;
+            }
+
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('초대 메일이 성공적으로 전송되었습니다!');
+                        // 선택된 사용자 목록 초기화
+                        selectedUsers = [];
+                        document.getElementById('selectedUsersContainer').innerHTML = `
+                        <input type="hidden" name="projectId" value="${form.projectId.value}">
+                        <input type="hidden" id="selectedUsersEmails" name="emails" value="">
+                    `;
+                    } else {
+                        alert('초대 메일 전송에 실패했습니다. 다시 시도해주세요.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('오류가 발생했습니다. 다시 시도해주세요.');
+                });
+        };
+    });
+</script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    /* Flash Attribute로 전달된 메시지가 있을 경우 alert로 표시 */
+    var successMessage = [[${successMessage != null}]] ? '[[${successMessage}]]' : null;
+    var errorMessage = [[${errorMessage != null}]] ? '[[${errorMessage}]]' : null;
+    if(successMessage){
+        alert(successMessage);
+    } else if(errorMessage){
+        alert(errorMessage);
+    }
+    /*]]>*/
+</script>
+<!--Layout 필수 자바스크립트 경로-->
+<!-- base:js -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<!-- endinject -->
+<!-- plugin js for this page -->
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page -->
+<!-- Custom js for this page-->
+<script src="/js/dashboard.js"></script>
+<!-- End custom js for this page-->
+
+</body>
+</html>
+

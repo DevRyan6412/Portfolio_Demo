@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- CSS Icon -->
+  <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- TinyMCE -->
+  <script src="https://cdn.tiny.cloud/1/bqgqrijaerjrvqx6r2vs05nhaoaxpsj2pi59vrvc6wc44eok/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+  <link rel="shortcut icon" href="../../images/favicon.png" />
+  <title>Ddait 사람들을 따듯하게 잇다</title>
+  <style>
+    /* 기본 스타일 */
+    .container {
+      margin-top: 20px;
+    }
+    .form-container {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background-color: #f5f5f5;
+    }
+    /* 고정 사이드바 */
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    /* 메인 패널 */
+    .main-panel {
+      transition: margin-left 0.3s ease;
+    }
+    .page-body-wrapper {
+        margin-right: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+  <!-- 사이드바 -->
+  <div th:replace="~{layout/sidebarinproject :: sidebar}"></div>
+  <div class="container-fluid page-body-wrapper">
+    <!-- 네비게이션 바 -->
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+    <div class="main-panel">
+      <div class="content-wrapper">
+        <div class="table-responsive mb-3">
+          <h1 class="mb-3">Global Notice Create
+            <span class="float-end">
+              <a th:href="@{/admin/global-notices}" class="btn btn-inverse-primary btn-fw">목록 보기</a>
+            </span>
+          </h1>
+        </div>
+        <div class="form-container">
+          <form id="globalNoticeForm" th:action="@{/admin/global-notices/create}" method="post" th:object="${globalNoticeDto}">
+            <div class="mb-3">
+              <label for="title" class="form-label">제목</label>
+              <input type="text" th:field="*{gTitle}" class="form-control" id="title" placeholder="글 제목을 입력하세요" required>
+            </div>
+            <div class="mb-3">
+              <label for="contents" class="form-label">내용</label>
+              <textarea th:field="*{gContents}" class="form-control" id="contents" rows="10" placeholder="내용을 입력하세요"></textarea>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">전체 공지 등록</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  tinymce.init({
+      selector: "#contents",
+      plugins: "preview searchreplace autolink autosave save directionality visualblocks visualchars fullscreen image link media codesample table charmap pagebreak nonbreaking anchor advlist lists wordcount help",
+      height: '500px',
+      toolbar_sticky: true,
+      content_style: `
+          body { background: #fff; font-family: 'Noto Sans KR', sans-serif; }
+          @media (min-width: 840px) {
+              html { background: #eceef4; min-height: 100%; padding: 0 .5rem }
+              body { background-color: #fff; box-shadow: 0 0 4px rgba(0, 0, 0, .15); margin: 1rem auto 0; max-width: 820px; min-height: calc(100vh - 1rem); padding: 2rem; }
+          }
+      `
+  });
+</script>
+<!-- 기본 스크립트 -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

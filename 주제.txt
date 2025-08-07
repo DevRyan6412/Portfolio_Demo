@@ -1,0 +1,54 @@
+개발환경
+
+-스프링부트 3.4.2
+-자바 17.0.14 (Amazone Corretto)
+-Maria DB 10.11.6
+
+-AWS
+------------------------------------
+ ★★★★ GIT ★★★★
+
+
+# 메인 브랜치 최신화 (pull)
+git status
+
+git checkout main
+git pull origin main
+git merge feature/Big1029
+git push origin main
+
+# 메인 브랜치에 push
+git add .
+git push origin main
+
+# 개인 브랜치 최신화 (pull)
+git push -f origin feature/Big1029
+git pull origin feature/Big1029
+
+# 개인 브랜치에 push
+git add .
+git commit -m "커밋메시지"
+git push origin feature/Big1029
+
+# 메인 브랜치의 최신 내용을 개인 브랜치로 가져오기
+git checkout feature/Big1029
+git pull origin main
+----------------------------------------------
+
+개인 브랜치에서 메인 브랜치로 병합할 때
+
+# 1. 메인 브랜치로 이동
+git checkout main
+
+# 2. 메인 브랜치 최신화
+git pull origin main
+
+# 3. 개인 브랜치의 내용을 메인에 병합
+git merge feature/Big1029
+
+# 4. 메인 브랜치에 push
+git push origin main
+
+-----------------------------
+
+★★★★커밋 메세지 생성 규칙 "커밋 메세지 -(개인 닉네임)"★★★★

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS Icon-->
+    <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!--    CSS-->
+    <link rel="stylesheet" href="/css/style.css">
+    <!--JQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <title>Ddait 사람들을 따듯하게 잇다</title>
+    <style>
+        /* 메시지 알림 스타일 추가 */
+        .alert {
+          padding: 15px;
+          margin-bottom: 20px;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          text-align: center;
+        }
+
+        .alert-success {
+          color: #155724;
+          background-color: #d4edda;
+          border-color: #c3e6cb;
+        }
+
+        .alert-error {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* 고정 사이드바 */
+                .sidebar {
+                    position: fixed;
+                    bottom: 0px;
+                    height: 100vh;
+                    overflow-y: auto;
+                }
+            /* 메인 패널 기본 설정: 사이드바 너비 만큼 왼쪽 마진 */
+            .main-panel {
+              transition: margin-left 0.3s ease;
+            }
+            .page-body-wrapper {
+                margin-right: 0px;
+            }
+            .border-custom {
+              border-color: #dfdfdf !important;
+            }
+    </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+    <!-- 분리한 사이드바(fragment) 포함 -->
+    <div th:replace="~{layout/sidebarinproject :: sidebar}"></div>
+    <div class="container-fluid page-body-wrapper">
+        <!-- 분리한 네비게이션 바(fragment) 포함 -->
+        <div th:replace="~{layout/navbar :: navbar}"></div>
+        <div class="main-panel">
+            <div class="content-wrapper"><!--여기부터-->
+                <div class="table-responsive mb-3">
+                    <h1>LogBoard</h1>
+                </div>
+                <br>
+                <!--  구어형식-->
+                <div class="table-responsive border border-custom mt-3">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>활동</th>
+                            <th>활동시간</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="log : ${logs}"
+                            th:with="postLabel = ( ${log.boardNm}=='noticeboard' ? '공지를 ' : ( ${log.boardNm}=='issues' ? '이슈를 ' : ( ${log.boardNm}=='calendar' ? '일정을 ' : ( ${log.boardNm}=='comment' ? '댓글을 ' : ( ${log.boardNm}=='reply' ? '대댓글을 ' : ( ${log.boardNm}=='invitation' ? '초대를 ' : ( ${log.boardNm}=='kick' ? '추방 ' : ${log.postId} ))))))),          actionLabel = ( ${log.action}=='ADD' ? '등록' : ( ${log.action}=='Delete' ? '삭제' : ( ${log.action}=='Update' ? '수정' : ( ${log.action}=='INVITATION' ? '수락' : ( ${log.action}=='KICK' ? '당' :${log.action} ))))),
+          targetUrl = ( ${log.boardNm}=='calendar' ? '/projects/' + ${projectId} : ( ${log.boardNm}=='invitation' ? '/projects/' + ${projectId} + '/board/logboard' : ( ${log.boardNm}=='kick' ? '/projects/' + ${projectId} + '/board/logboard' : '/projects/' + ${projectId} + '/board/' + ${log.boardNm} + '/' + ${log.postId} )))"
+                            th:data-url="${targetUrl}"
+                            onclick="window.location.href=this.getAttribute('data-url')"
+                            style="cursor: pointer;">
+                            <td th:text="${log.logNo}">번호</td>
+                            <td>
+                                <span th:text="${log.cName}">작성자</span>님이&nbsp;
+                                <span th:text="${postLabel}">게시글</span>
+                                <span th:text="${actionLabel}">액션</span>했습니다.&nbsp;
+                            </td>
+                            <td th:text="${#temporals.format(log.actionDate, 'yyyy-MM-dd HH:mm')}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 페이징 네비게이션 추가 -->
+                <nav aria-label="Page navigation" th:if="${page.totalPages > 0}">
+                    <ul class="pagination mt-3 justify-content-center">
+                        <!-- 이전 페이지 -->
+                        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/logboard(projectId=${projectId}, page=${page.number - 1})}"
+                               th:if="${not page.first}">이전</a>
+                            <span class="page-link" th:if="${page.first}">이전</span>
+                        </li>
+
+                        <!-- 페이지 번호들 -->
+                        <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, page.totalPages - 1)}"
+                            th:classappend="${pageNum == page.number} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/logboard(projectId=${projectId}, page=${pageNum})}">
+                                [[${pageNum + 1}]]
+                            </a>
+                        </li>
+
+                        <!-- 다음 페이지 -->
+                        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/logboard(projectId=${projectId}, page=${page.number + 1})}"
+                               th:if="${not page.last}">다음</a>
+                            <span class="page-link" th:if="${page.last}">다음</span>
+                        </li>
+                    </ul>
+                </nav>
+            </div><!--여기까지-->
+        </div>
+    </div>
+</div>
+</div>
+
+<!--Layout 필수 자바스크립트 경로-->
+<!-- base:js -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<!-- endinject -->
+<!-- plugin js for this page -->
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page -->
+<!-- Custom js for this page-->
+<script src="/js/dashboard.js"></script>
+<!-- End custom js for this page-->
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    // 추가적인 저장소 등록 (JCenter는 더 이상 지원되지 않으므로 필요 시 다른 저장소도 추가)
+    maven { url "https://repo.spring.io/milestone" }
+    maven { url "https://repo.spring.io/snapshot" }
+}
+
+test {
+    exclude '**/UserControllerTest.class'
+}
+
+dependencies {
+    // Spring Boot Starter Dependencies
+
+    implementation 'com.google.firebase:firebase-admin:9.1.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-authorization-server'
+    implementation 'org.webjars.npm:fullcalendar:6.1.10'
+    implementation 'org.webjars.npm:fullcalendar:6.1.10'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-mail' //JavaMailSender
+
+    // Thymeleaf Extras (Spring Security)
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.1.RELEASE'
+
+
+//    // JWT Dependencies
+//    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+//    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+//    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // JWT Dependencies
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+
+    // Development Tools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Database Drivers
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    // Test Dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

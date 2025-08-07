@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS Icon-->
+    <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!--    CSS-->
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!--JQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="shortcut icon" href="../../images/favicon.png" />
+    <title>Ddait 사람들을 따듯하게 잇다</title>
+    <style>
+        /* 메시지 알림 스타일 추가 */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* 고정 사이드바 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+        /* 메인 패널 기본 설정: 사이드바 너비 만큼 왼쪽 마진 */
+        .main-panel {
+            transition: margin-left 0.3s ease;
+        }
+        .page-body-wrapper {
+            margin-right: 0px;
+        }
+        .filter-form {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+        .project-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .project-activity {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .project-rank {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .stats-summary {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .project-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-planning { background-color: #6c757d; }
+        /* 회색 - 계획 중 */
+
+        .status-in-progress { background-color: #28a745; }
+        /* 초록 - 진행 중 */
+
+        .status-completed { background-color: #007bff; }
+        /* 파랑 - 완료 */
+
+        .status-on-hold { background-color: #ffc107; }
+        /* 노랑 - 보류 */
+
+        .status-cancelled { background-color: #dc3545; }
+        /* 빨강 - 취소 */
+
+    </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+    <!-- 분리한 사이드바(fragment) 포함 -->
+    <div th:replace="layout/sidebarinproject :: sidebar"></div>
+    <div class="container-fluid page-body-wrapper">
+        <!-- 분리한 네비게이션 바(fragment) 포함 -->
+        <div th:replace="layout/navbar :: navbar"></div>
+        <div class="main-panel">
+            <div class="content-wrapper"><!--여기부터-->
+                <!-- 페이지 제목 영역 -->
+                <h2 layout:fragment="page-title">프로젝트 활동 통계</h2>
+
+                <!-- 페이지 내용 영역 -->
+                <div layout:fragment="content">
+                    <!-- 필터 폼 -->
+                    <div class="card mb-4">
+                        <div class="card-body filter-form">
+                            <form th:action="@{/admin/monitoring/project-stats}" method="get" class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="startDate" class="form-label">시작일</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="endDate" class="form-label">종료일</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i> 조회
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 프로젝트 요약 통계 -->
+                    <div class="stats-summary mb-4">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <h4>전체 프로젝트</h4>
+                                <div class="stats-number" th:text="${projectStats != null && projectStats.containsKey('totalProjects') ? projectStats.get('totalProjects') : '0'}">0</div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h4>활동 프로젝트</h4>
+                                <div class="stats-number" th:text="${projectStats != null && projectStats.containsKey('activeProjectCount') ? projectStats.get('activeProjectCount') : (topProjects != null ? topProjects.size() : '0')}">0</div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h4>기간내 생성된 프로젝트</h4>
+                                <div class="stats-number" th:text="${projectStats != null && projectStats.containsKey('projectsCreatedInPeriod') ? projectStats.get('projectsCreatedInPeriod') : '0'}">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 프로젝트 상태 분포 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">프로젝트 상태 분포</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="projectStatusChart"></canvas>
+                            </div>
+                        </div>
+<!--                        <div class="card-footer bg-white">-->
+<!--                            <div class="row">-->
+<!--                                <div class="col-auto">-->
+<!--                                    <span class="project-status status-planning"></span> 계획 중-->
+<!--                                </div>-->
+<!--                                <div class="col-auto">-->
+<!--                                    <span class="project-status status-in-progress"></span> 진행 중-->
+<!--                                </div>-->
+<!--                                <div class="col-auto">-->
+<!--                                    <span class="project-status status-completed"></span> 완료-->
+<!--                                </div>-->
+<!--                                <div class="col-auto">-->
+<!--                                    <span class="project-status status-on-hold"></span> 보류-->
+<!--                                </div>-->
+<!--                                <div class="col-auto">-->
+<!--                                    <span class="project-status status-cancelled"></span> 취소-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+                    <!-- 활동적인 프로젝트 목록 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">활동이 많은 프로젝트 TOP 20</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- 데이터가 없는 경우 -->
+                                <div class="col-12 text-center py-5" th:if="${topProjects == null || topProjects.isEmpty()}">
+                                    <p class="text-muted">조회된 프로젝트가 없습니다.</p>
+                                </div>
+
+                                <!-- 데이터가 있는 경우 -->
+                                <div class="col-md-3 mb-3" th:each="project, stat : ${topProjects}" th:if="${topProjects != null && !topProjects.isEmpty()}">
+                                    <div class="card project-card h-100">
+                                        <div class="card-body position-relative">
+                                            <div class="project-rank" th:text="${stat.count}">1</div>
+                                            <h5 class="card-title text-truncate" th:text="${project.projectName}">프로젝트명</h5>
+                                            <div class="project-activity" th:text="${project.activityCount}">0</div>
+                                            <p class="card-text text-muted">활동 수</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 프로젝트 활동 분포 차트 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">프로젝트 활동 분포</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="projectActivityChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <p class="text-muted mb-0">상위 10개 프로젝트의 활동량을 비교할 수 있습니다. 그래프가 균등할수록 활동이 고르게 분포되어 있음을 의미합니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 프로젝트 생성 추세 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">프로젝트 생성 추세</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="projectCreationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <p class="text-muted mb-0">기간별 프로젝트 생성 추세를 확인할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 멤버가 많은 프로젝트 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">멤버가 많은 프로젝트</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>순위</th>
+                                        <th>프로젝트명</th>
+                                        <th>멤버 수</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <!-- 데이터가 없는 경우 -->
+                                    <tr th:if="${topProjectsByMember == null || topProjectsByMember.isEmpty()}">
+                                        <td colspan="4" class="text-center">데이터가 없습니다.</td>
+                                    </tr>
+
+                                    <!-- 데이터가 있는 경우 -->
+                                    <tr th:each="project, stat : ${topProjectsByMember}" th:if="${topProjectsByMember != null && !topProjectsByMember.isEmpty()}">
+                                        <td th:text="${stat.count}">1</td>
+                                        <td>
+                                            <a th:if="${project.projectId != null}"
+                                               th:href="@{/admin/projects/{id}(id=${project.projectId})}"
+                                               th:text="${project.projectName}"
+                                               class="text-primary">프로젝트명</a>
+                                            <span th:unless="${project.projectId != null}" th:text="${project.projectName}">프로젝트명</span>
+                                        </td>
+                                        <td th:text="${project.memberCount}">0</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!--여기까지-->
+        </div>
+    </div>
+</div>
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // 프로젝트 상태 분포 차트
+        const projectStatusData = /*[[${projectStatusData}]]*/ { labels: [], counts: [], colors: [] };
+
+        // 데이터가 비어있는지 확인
+        if (!projectStatusData || !projectStatusData.labels || projectStatusData.labels.length === 0) {
+            // 기본값 설정 - CSS와 동일한 색상으로 맞춤
+            projectStatusData.labels = ['계획 중', '진행 중', '완료', '보류', '취소'];
+            projectStatusData.counts = [0, 0, 0, 0, 0];
+            projectStatusData.colors = [
+                'rgba(108, 117, 125, 0.8)',  // 회색 (계획 중) - status-planning과 일치
+                'rgba(40, 167, 69, 0.8)',    // 초록 (진행 중) - status-in-progress와 일치
+                'rgba(0, 123, 255, 0.8)',    // 파랑 (완료) - status-completed와 일치
+                'rgba(255, 193, 7, 0.8)',    // 노랑 (보류) - status-on-hold와 일치
+                'rgba(220, 53, 69, 0.8)'     // 빨강 (취소) - status-cancelled와 일치
+            ];
+        } else {
+            // 서버에서 데이터가 제공된 경우에도 CSS와 일치하는 색상 사용
+            projectStatusData.colors = [
+                'rgba(108, 117, 125, 0.8)',  // 회색 (계획 중)
+                'rgba(40, 167, 69, 0.8)',    // 초록 (진행 중)
+                'rgba(0, 123, 255, 0.8)',    // 파랑 (완료)
+                'rgba(255, 193, 7, 0.8)',    // 노랑 (보류)
+                'rgba(220, 53, 69, 0.8)'     // 빨강 (취소)
+            ];
+        }
+
+        // 모든 카운트가 0인지 확인
+        const allZero = projectStatusData.counts.every(count => count === 0);
+
+        // 상태 분포 차트 생성
+        const statusCtx = document.getElementById('projectStatusChart').getContext('2d');
+
+        if (allZero) {
+            // 데이터가 없는 경우 중앙에 메시지 표시
+            statusCtx.font = '20px Arial';
+            statusCtx.textAlign = 'center';
+            statusCtx.fillText('프로젝트 상태 데이터가 없습니다', statusCtx.canvas.width / 2, statusCtx.canvas.height / 2);
+        } else {
+            // 데이터가 있는 경우 파이 차트 생성
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: projectStatusData.labels,
+                    datasets: [{
+                        data: projectStatusData.counts,
+                        backgroundColor: projectStatusData.colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '프로젝트 상태 분포'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value}개 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 프로젝트 활동 분포 차트와 데이터
+        const topProjects = /*[[${topProjects}]]*/ [];
+
+        // 프로젝트 활동 분포 차트 - 개선된 버전
+        if (!topProjects || topProjects.length === 0) {
+            // 데이터가 없는 경우 "데이터 없음" 메시지 표시
+            const projectCtx = document.getElementById('projectActivityChart').getContext('2d');
+            projectCtx.font = '20px Arial';
+            projectCtx.textAlign = 'center';
+            projectCtx.fillText('표시할 데이터가 없습니다', projectCtx.canvas.width / 2, projectCtx.canvas.height / 2);
+        } else {
+            // 상위 10개만 표시
+            const top10Projects = topProjects.slice(0, 10);
+
+            // 차트 데이터 준비
+            const projectNames = [];
+            const activityCounts = [];
+            const backgroundColors = [];
+
+            // 색상 배열
+            const colors = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)',
+                'rgba(83, 102, 255, 0.7)',
+                'rgba(40, 167, 69, 0.7)',
+                'rgba(220, 53, 69, 0.7)'
+            ];
+
+            top10Projects.forEach((project, index) => {
+                projectNames.push(project.projectName);
+                activityCounts.push(project.activityCount);
+                backgroundColors.push(colors[index % colors.length]);
+            });
+
+            // 프로젝트 활동 분포 차트
+            const projectCtx = document.getElementById('projectActivityChart').getContext('2d');
+            new Chart(projectCtx, {
+                type: 'bar',
+                data: {
+                    labels: projectNames,
+                    datasets: [{
+                        label: '활동 수',
+                        data: activityCounts,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '상위 10개 프로젝트 활동량'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 프로젝트 생성 추세 차트 - 개선된 버전
+        const projectCreationTrends = /*[[${projectCreationTrends}]]*/ { labels: [], values: [] };
+
+        // 데이터가 비어있는지 확인하고 기본값 설정
+        if (!projectCreationTrends || !projectCreationTrends.labels || projectCreationTrends.labels.length === 0) {
+            // 기본값으로 오늘 날짜 하나만 표시
+            const today = new Date();
+            const formattedDate = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
+            projectCreationTrends.labels = [formattedDate];
+            projectCreationTrends.values = [0];
+        }
+
+        // 프로젝트 생성 추세 차트 - 수정된 부분
+        const creationCtx = document.getElementById('projectCreationChart').getContext('2d');
+        new Chart(creationCtx, {
+            type: 'line',
+            data: {
+                labels: projectCreationTrends.labels,
+                datasets: [{
+                    label: '생성된 프로젝트 수',
+                    data: projectCreationTrends.values,
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '프로젝트 생성 추세'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `생성된 프로젝트: ${context.raw}개`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<!--Layout 필수 자바스크립트 경로-->
+<!-- base:js -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<!-- endinject -->
+<!-- plugin js for this page -->
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page -->
+<!-- Custom js for this page-->
+<script src="/js/dashboard.js"></script>
+<!-- End custom js for this page-->
+
+</body>
+</html>
+

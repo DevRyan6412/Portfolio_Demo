@@ -1,0 +1,144 @@
+<nav class="sidebar sidebar-offcanvas" id="sidebar" th:fragment="sidebar"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <ul class="nav">
+
+        <li class="nav-item active">
+            <!--Project 내부 sidebar-->
+            <a href="/" class="nav-link">
+                <i class="mdi mdi-home menu-icon"></i>
+                <span class="menu-title">Home</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/profile(projectId=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-account-box menu-icon"></i>
+                <span class="menu-title">My Profile</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/projects">
+                <i class="mdi mdi-folder-multiple menu-icon"></i>
+                <span class="menu-title">My Projects</span>
+            </a>
+        </li>
+        <li class="nav-item sidebar-category" th:if="${project != null or projectId != null}">
+            <p>Project Menu</p>
+            <span></span>
+        </li>
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <a class="nav-link" th:href="@{/projects/{id}(id=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-home-variant menu-icon"></i>
+                <span class="menu-title">Project Home</span>
+            </a>
+        </li>
+
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <!-- 수정된 채팅 링크: 새 창으로 열림 -->
+            <a class="nav-link" href="#" th:onclick="'openChatWindow(\'/projects/' + ${project != null ? project.id : projectId} + '/chat\'); return false;'">
+                <i class="mdi mdi-forum menu-icon"></i>
+                <span class="menu-title">Project chat</span>
+            </a>
+        </li>
+
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <a class="nav-link" th:href="@{/projects/{id}/board/noticeboard(id=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-clipboard-text menu-icon"></i>
+                <span class="menu-title">Notice</span>
+            </a>
+        </li>
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <a class="nav-link" th:href="@{/projects/{id}/board/logboard(id=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-clock menu-icon"></i>
+                <span class="menu-title">History/Record</span>
+            </a>
+        </li>
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <a class="nav-link" th:href="@{/projects/{id}/board/issues(id=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-comment-check menu-icon"></i>
+                <span class="menu-title">Issue</span>
+            </a>
+        </li>
+        <li class="nav-item" th:if="${project != null or projectId != null}">
+            <a class="nav-link" th:href="@{/projects/{id}/management(id=${project != null ? project.id : projectId})}">
+                <i class="mdi mdi-settings menu-icon"></i>
+                <span class="menu-title">Project Setting</span>
+            </a>
+        </li>
+<!--        <li class="nav-item sidebar-category" th:if="${project != null or projectId != null}">-->
+<!--            <p>Admin Menu</p>-->
+<!--            <span></span>-->
+<!--        </li>-->
+<!--        <li class="nav-item" th:if="${project != null or projectId != null}">-->
+<!--            <a class="nav-link" th:href="@{/projects/{id}/management(id=${project != null ? project.id : projectId})}">-->
+<!--                <i class="mdi mdi-settings menu-icon"></i>-->
+<!--                <span class="menu-title">Project Setting</span>-->
+<!--            </a>-->
+<!--        </li>-->
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item sidebar-category">
+            <p>Admin Menu</p>
+            <span></span>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring}">
+                <i class="mdi mdi-television-guide menu-icon"></i>
+                <span class="menu-title">Home - DashBoard</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/activities}">
+                <i class="mdi mdi-run menu-icon"></i>
+                <span class="menu-title">Activity Log</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/project-stats}">
+                <i class="mdi mdi-note-text menu-icon"></i>
+                <span class="menu-title">Project-stats</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/user-stats}">
+                <i class="mdi mdi-face menu-icon"></i>
+                <span class="menu-title">User-stats</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/time-stats}">
+                <i class="mdi mdi-history menu-icon"></i>
+                <span class="menu-title">Time-stats</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/board-stats}">
+                <i class="mdi mdi-bulletin-board menu-icon"></i>
+                <span class="menu-title">Board-stats</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/monitoring/action-stats}">
+                <i class="mdi mdi-bullhorn menu-icon"></i>
+                <span class="menu-title">Action-stats</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/users}">
+                <i class="mdi mdi-account-star menu-icon"></i>
+                <span class="menu-title">User Manage</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" class="nav-item">
+            <a class="nav-link" th:href="@{/admin/global-notices}">
+                <i class="mdi mdi-pin menu-icon"></i>
+                <span class="menu-title">Global Notice</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- 채팅창 열기 위한 자바스크립트 함수 추가 -->
+    <script>
+        function openChatWindow(url) {
+            window.open(url, 'projectChat', 'width=500,height=600,resizable=yes,scrollbars=yes,status=no,location=no,toolbar=no');
+        }
+    </script>
+</nav>

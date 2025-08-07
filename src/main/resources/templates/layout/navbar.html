@@ -1,0 +1,102 @@
+<div th:fragment="navbar"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <nav class="navbar col-lg-12 col-12 px-0 py-0 py-lg-4 d-flex flex-row">
+        <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                <span class="mdi mdi-menu"></span>
+            </button>
+            <div class="navbar-brand-wrapper">
+
+                <a class="navbar-brand brand-logo" href="/"><img src="/images/DdaitLogo.png" alt="logo"></a>
+                <a class="navbar-brand brand-logo-mini" href="/"><img src="/images/DdaitLogo.png"
+                                                                               alt="logo"></a>
+            </div>
+            <h4 class="font-weight-bold mb-0 d-none d-md-block mt-1">
+                <span th:if="${project != null or projectId != null}"
+                      th:text="${project != null ? project.projectName : '프로젝트 이름'}"
+                      class="text-warning fw-bold">프로젝트 이름</span>
+                <span th:unless="${project != null or projectId != null}">
+                        사람과 사람을
+                <span class="text-warning fw-bold">따</span>듯하게
+                <span class="text-warning fw-bold">잇</span>다.
+                </span>
+
+            </h4>
+            <ul class="navbar-nav navbar-nav-right">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <h3 class="mb-0 font-weight-bold d-none d-xl-block me-2"><span th:text="${username}"
+                                                                                   style="color: #1181fa;">사용자</span>님
+                        환영합니다!</h3>
+                    <!--                    <a href="/profile" class="btn btn-light btn-fw me-2">-->
+                    <!--                        <i class="mdi mdi-account-box"></i>-->
+                    <!--                        내정보-->
+                    <!--                    </a>-->
+                    <form th:action="@{/logout}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-light btn-fw me-2">
+                            <i class="mdi mdi-logout"></i>
+                            로그아웃
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="btn btn-light btn-fw me-2" href="/login">
+                        <i class="mdi mdi-account"></i>
+                        로그인
+                    </a>
+                </li>
+                <!--            </ul>-->
+                <!--            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">-->
+                <!--                <span class="mdi mdi-menu"></span>-->
+                <!--            </button>-->
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+                        data-toggle="offcanvas">
+                    <span class="mdi mdi-menu"></span>
+                </button>
+        </div>
+        <!--navbar검색부분-->
+        <!--        <div class="navbar-menu-wrapper navbar-search-wrapper d-none d-lg-flex align-items-center">-->
+        <!--            <ul class="navbar-nav mr-lg-2">-->
+        <!--                <li class="nav-item nav-search d-none d-lg-block">-->
+        <!--                    <div class="input-group">-->
+        <!--                        <input type="text" class="form-control" placeholder="Search Here..." aria-label="search"-->
+        <!--                               aria-describedby="search">-->
+        <!--                    </div>-->
+        <!--                </li>-->
+        <!--            </ul>-->
+        <!--            <ul class="navbar-nav navbar-nav-right">-->
+        <!--                <li class="nav-item nav-profile dropdown">-->
+        <!--                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">-->
+        <!--                        <img src="images/faces/face5.jpg" alt="profile">-->
+        <!--                        <span class="nav-profile-name">Eleanor Richardson</span>-->
+        <!--                    </a>-->
+        <!--                    <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">-->
+        <!--                        <a class="dropdown-item">-->
+        <!--                            <i class="mdi mdi-settings text-primary"></i>-->
+        <!--                            Settings-->
+        <!--                        </a>-->
+        <!--                        <a class="dropdown-item">-->
+        <!--                            <i class="mdi mdi-logout text-primary"></i>-->
+        <!--                            Logout-->
+        <!--                        </a>-->
+        <!--                    </div>-->
+        <!--                </li>-->
+        <!--                <li class="nav-item">-->
+        <!--                    <a href="#" class="nav-link icon-link">-->
+        <!--                        <i class="mdi mdi-plus-circle-outline"></i>-->
+        <!--                    </a>-->
+        <!--                </li>-->
+        <!--                <li class="nav-item">-->
+        <!--                    <a href="#" class="nav-link icon-link">-->
+        <!--                        <i class="mdi mdi-web"></i>-->
+        <!--                    </a>-->
+        <!--                </li>-->
+        <!--                <li class="nav-item">-->
+        <!--                    <a href="#" class="nav-link icon-link">-->
+        <!--                        <i class="mdi mdi-clock-outline"></i>-->
+        <!--                    </a>-->
+        <!--                </li>-->
+        <!--            </ul>-->
+        <!--        </div>-->
+    </nav>
+</div>

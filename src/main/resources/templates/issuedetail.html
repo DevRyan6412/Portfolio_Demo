@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS Icon-->
+    <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!--    CSS-->
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!--JQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <title>Ddait 사람들을 따듯하게 잇다</title>
+    <style>
+        /* 메시지 알림 스타일 추가 */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* 고정 사이드바 */
+        .sidebar {
+            position: fixed;
+            bottom: 0px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        /* 메인 패널 기본 설정: 사이드바 너비 만큼 왼쪽 마진 */
+        .main-panel {
+            transition: margin-left 0.3s ease;
+        }
+        .page-body-wrapper {
+            margin-right: 0px;
+        }
+
+        /* 부모 댓글과 자식 댓글 스타일 */
+        .parent-comment {
+            padding: 15px;
+            background-color: #fff;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+
+        .child-comment {
+            margin-left: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #4CAF50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-scroller d-flex">
+    <!-- 분리한 사이드바(fragment) 포함 -->
+    <div th:replace="~{layout/sidebarinproject :: sidebar}"></div>
+    <div class="container-fluid page-body-wrapper">
+        <!-- 분리한 네비게이션 바(fragment) 포함 -->
+        <div th:replace="~{layout/navbar :: navbar}"></div>
+        <div class="main-panel">
+            <div class="content-wrapper"><!--여기부터-->
+                <div class="table-responsive">
+                    <h1> 이슈 상세보기
+                        <span class="float-end mb-3">
+                            <a th:href="@{/projects/{projectId}/board/issues(projectId=${projectId})}" class="btn btn-inverse-primary btn-fw">목록보기</a>
+                        </span>
+                    </h1>
+                </div>
+
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <!-- 왼쪽: 제목 + 상태 -->
+                            <div class="col">
+                                <h4 class="fw-bold d-inline" th:text="${issue.title}">이슈 제목</h4>
+                                <!-- ✅ 상태 배지를 제목 옆에 위치 -->
+                                <span th:if="${issue.status == 'IN_PROGRESS'}" class="badge bg-primary ms-2">진행 중</span>
+                                <span th:if="${issue.status == 'COMPLETED'}" class="badge bg-success ms-2">완료</span>
+                                <span th:if="${issue.status == 'ON_HOLD'}" class="badge bg-warning ms-2">보류</span>
+                            </div>
+                            <!-- 오른쪽: 등록일 -->
+                            <div class="col text-end">
+                                <p class="text-muted mb-0">
+                                    <strong>등록일:</strong>
+                                    <span th:text="${#temporals.format(issue.createdDate, 'yyyy-MM-dd HH:mm')}">등록일시</span>
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 작성자 정보 -->
+                        <div class="col">
+                            <p><strong>작성자:</strong> <span th:text="${issue.cName}">작성자명</span></p>
+                        </div>
+                        <!-- 이슈 내용 -->
+                        <p th:text="${issue.content}">이슈 내용</p>
+                    </div>
+                </div>
+
+                <!--                <div class="card mb-3">-->
+<!--                    <div class="card-body">-->
+
+<!--                        &lt;!&ndash; 작성자와 등록일을 한 행에 배치 &ndash;&gt;-->
+<!--                        <div class="row align-items-center">-->
+<!--                            <div class="col">-->
+<!--                                <h4 class="fw-bold" th:text="${issue.title}">이슈 제목</h4>-->
+
+<!--                                &lt;!&ndash; ✅ 추가된 부분: 이슈 상태 표시 &ndash;&gt;-->
+<!--                                <p>-->
+<!--                                    <strong>상태:</strong>-->
+<!--                                    <span th:if="${issue.status == 'IN_PROGRESS'}" class="badge bg-primary">진행 중</span>-->
+<!--                                    <span th:if="${issue.status == 'COMPLETED'}" class="badge bg-success">완료</span>-->
+<!--                                    <span th:if="${issue.status == 'ON_HOLD'}" class="badge bg-warning">보류</span>-->
+<!--                                </p>-->
+<!--                                -->
+<!--                            </div>-->
+<!--                            <div class="col text-end">-->
+<!--                                <p class="text-muted mb-0">-->
+<!--                                    <strong>등록일:</strong>-->
+<!--                                    <span th:text="${#temporals.format(issue.createdDate, 'yyyy-MM-dd HH:mm')}">등록일시</span>-->
+<!--                                </p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="col">-->
+<!--                            <p><strong>작성자:</strong> <span th:text="${issue.cName}">작성자명</span></p>-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash; 내용은 별도의 영역에 표시 &ndash;&gt;-->
+<!--                        <p><strong></strong></p>&lt;!&ndash;이슈내용 부분&ndash;&gt;-->
+<!--                        <p th:text="${issue.content}">이슈 내용</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+                <!-- 첨부 파일 -->
+                <div class="card mb-3" th:if="${issue.files != null and !issue.files.empty}">
+                    <div class="card-body">
+                        <h5 class="card-title">첨부 파일</h5>
+                        <ul class="list-group">
+                            <li th:each="file : ${issue.files}" class="list-group-item d-flex justify-content-between align-items-center">
+                                <span th:text="${file.fileName}">파일명</span>
+
+                                <!-- ✅ 미리보기 버튼 (이미지 파일일 경우) -->
+                                <a th:if="${file.fileType != null and file.fileType.startsWith('image/')}"
+                                   th:href="@{/api/files/view/{fileId}(fileId=${file.id})}"
+                                   class="btn btn-sm btn-secondary"
+                                   target="_blank">
+                                    미리보기
+                                </a>
+
+                                <!-- ✅ 다운로드 버튼 -->
+                                <a class="btn btn-sm btn-primary"
+                                   th:href="@{/api/issues/{issueId}/files/download/{fileName}(issueId=${issue.id}, fileName=${file.fileName})}">
+                                    다운로드
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="table-responsive"><!---->
+                    <div class="mb-3 float-end">
+                        <a th:href="@{/projects/{projectId}/board/issues/edit/{id}(projectId=${projectId}, id=${issue.id})}"
+                           class="btn btn-warning">수정</a>
+                        <form th:action="@{/projects/{projectId}/board/issues/delete/{id}(projectId=${projectId}, id=${issue.id})}"
+                              method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">삭제</button>
+                        </form>
+                    </div>
+                </div>
+
+
+                <!-- 댓글 목록 -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">댓글 목록</h5>
+                        <div id="comments-container">
+                            <!-- 부모 댓글만 순회 (parentCommentId가 null인 경우) -->
+                            <div th:each="comment : ${comments}" th:if="${comment.parentCommentId == null}" class="parent-comment">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <!-- 왼쪽: 작성자와 등록일 -->
+                                    <div>
+                                        <strong th:text="${comment.cName}"></strong>
+                                        <small class="text-muted" th:text="${#temporals.format(comment.createdDate, 'yyyy-MM-dd HH:mm')}"></small>
+                                    </div>
+                                    <!-- 오른쪽: 버튼 그룹 (버튼 사이 간격을 위해 gap 클래스 사용) -->
+                                    <div class="d-flex gap-2">
+                                        <!-- 대댓글 버튼 -->
+                                        <button class="btn btn-sm btn-outline-secondary reply-btn" th:data-comment-id="${comment.id}">답글</button>
+
+                                        <!-- 수정 버튼: 작성자만 보임 -->
+                                        <button th:if="${comment.createdBy == (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) ? #authentication.principal.attributes['email'] : #authentication.principal.username)}"
+                                                class="btn btn-sm btn-outline-warning edit-btn"
+                                                th:data-comment-id="${comment.id}"
+                                                th:data-content="${comment.contents}">수정</button>
+
+                                        <!-- 삭제 버튼: 작성자만 보임 -->
+                                        <form th:if="${comment.createdBy == (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) ? #authentication.principal.attributes['email'] : #authentication.principal.username)}"
+                                              th:action="@{/projects/{projectId}/board/issues/{issueId}/comments/delete/{commentId}(projectId=${projectId}, issueId=${issue.id}, commentId=${comment.id})}"
+                                              method="post"
+                                              style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-btn">삭제</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="my-2" th:text="${comment.contents}"></div>
+
+                                <!-- 대댓글 입력 폼 -->
+                                <div class="reply-form mt-2" th:id="'reply-form-' + ${comment.id}" style="display: none;">
+                                    <form th:action="@{/projects/{projectId}/board/issues/{issueId}/comments/{parentCommentId}/reply(projectId=${projectId}, issueId=${issue.id}, parentCommentId=${comment.id})}" method="post">
+                                        <input type="hidden" name="userId"
+                                               th:value="${#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails)
+                                                          ? #authentication.principal.username
+                                                          : #authentication.principal.getAttribute('email') ?: #authentication.name}">
+                                        <input type="text" name="content" class="form-control" placeholder="답글을 입력하세요">
+                                        <button type="submit" class="btn btn-sm btn-primary mt-2">답글 등록</button>
+                                    </form>
+                                </div>
+
+                                <!-- 이 부모 댓글에 달린 자식 댓글들 (parentCommentId가 현재 댓글 ID와 일치하는 경우) -->
+                                <div th:each="childComment : ${comments}" th:if="${childComment.parentCommentId != null && childComment.parentCommentId == comment.id}" class="child-comment">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <!-- 왼쪽: 작성자와 등록일 -->
+                                        <div>
+                                            <strong th:text="${childComment.cName}"></strong>
+                                            <small th:text="${#temporals.format(childComment.createdDate, 'yyyy-MM-dd HH:mm')}"></small>
+                                        </div>
+                                        <!-- 오른쪽: 수정/삭제 버튼 그룹 -->
+                                        <div class="d-flex gap-2">
+                                            <button th:if="${childComment.createdBy == (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) ? #authentication.principal.attributes['email'] : #authentication.principal.username)}"
+                                                    class="btn btn-sm btn-outline-warning edit-btn"
+                                                    th:data-comment-id="${childComment.id}"
+                                                    th:data-content="${childComment.contents}">수정</button>
+
+                                            <form th:if="${childComment.createdBy == (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) ? #authentication.principal.attributes['email'] : #authentication.principal.username)}"
+                                                  th:action="@{/projects/{projectId}/board/issues/{issueId}/comments/delete/{commentId}(projectId=${projectId}, issueId=${issue.id}, commentId=${childComment.id})}"
+                                                  method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger delete-btn">삭제</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <!-- 내용은 버튼 행 아래에 별도의 영역으로 표시 -->
+                                    <div class="my-2" th:text="${childComment.contents}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 댓글 작성 폼 -->
+                <div class="card mb-3 mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">댓글 작성</h5>
+                        <form id="comment-form"
+                              th:action="@{/projects/{projectId}/board/issues/{issueId}/comments(projectId=${projectId}, issueId=${issue.id})}"
+                              method="post">
+                            <input type="hidden" name="userEmail"
+                                   th:value="${#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails)
+                              ? #authentication.principal.username
+                              : #authentication.principal.getAttribute('email') ?: #authentication.name}">
+                            <textarea name="content" class="form-control mb-2" rows="3" required placeholder="댓글을 입력하세요"></textarea>
+                            <button type="submit" class="btn btn-primary float-end">댓글 등록</button>
+                        </form>
+                    </div>
+                </div>
+
+
+                <!-- 댓글 목록 카드 바로 아래에 페이징 버튼 추가 -->
+                <nav aria-label="댓글 페이지 네비게이션" th:if="${totalPages > 0}">
+                    <ul class="pagination justify-content-center">
+                        <!-- 이전 버튼 - URL 수정 (/comments 제거) -->
+                        <li class="page-item" th:classappend="${(currentPage != null ? currentPage : 0) == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/issues/{issueId}(page=${(currentPage != null ? currentPage : 0) - 1}, projectId=${projectId}, issueId=${issue.id})}"
+                               aria-label="Previous">
+                                <span aria-hidden="true">이전</span>
+                            </a>
+                        </li>
+
+                        <!-- 페이지 번호 버튼 - URL 수정 (/comments 제거) -->
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == (currentPage != null ? currentPage : 0)} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/issues/{issueId}(page=${i}, projectId=${projectId}, issueId=${issue.id})}"
+                               th:text="${i + 1}"></a>
+                        </li>
+
+                        <!-- 다음 버튼 - URL 수정 (/comments 제거) -->
+                        <li class="page-item" th:classappend="${(currentPage != null ? currentPage : 0) + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/projects/{projectId}/board/issues/{issueId}(page=${(currentPage != null ? currentPage : 0) + 1}, projectId=${projectId}, issueId=${issue.id})}"
+                               aria-label="Next">
+                                <span aria-hidden="true">다음</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const projectId = "[[${projectId}]]";
+        const issueId = "[[${issue.id}]]";
+
+        // 🔹 댓글 정렬 - 페이지 로드 시 최신 댓글이 아래에 표시되도록 정렬
+        const commentsContainer = document.getElementById("comments-container");
+        if (commentsContainer) {
+            const parentComments = Array.from(commentsContainer.querySelectorAll(".parent-comment"));
+
+            // 부모 댓글 요소들 역순으로 재정렬 (최신이 아래로)
+            parentComments.reverse().forEach(comment => {
+                commentsContainer.appendChild(comment);
+            });
+        }
+
+        // 🔹 대댓글 버튼 클릭 시 입력창 표시
+        document.querySelectorAll(".reply-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const commentId = this.getAttribute("data-comment-id");
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                if (replyForm) {
+                    replyForm.style.display = (replyForm.style.display === "none" || replyForm.style.display === "") ? "block" : "none";
+                }
+            });
+        });
+
+        // 🔹 댓글 수정 기능
+        document.querySelectorAll(".edit-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const commentId = this.getAttribute("data-comment-id");
+                const content = this.getAttribute("data-content");
+                const newContent = prompt("댓글 수정", content);
+
+                if (newContent && newContent !== content) {
+                    fetch(`/projects/${projectId}/board/issues/${issueId}/comments/update/${commentId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({ newContent: newContent })
+                    }).then(response => {
+                        if (!response.ok) {
+                            throw new Error("댓글 수정 실패");
+                        }
+                        // 명확한 URL로 리다이렉트 (/comments 경로 제외)
+                        window.location.href = `/projects/${projectId}/board/issues/${issueId}`;
+                    }).catch(error => {
+                        console.error("댓글 수정 중 오류:", error);
+                        alert("댓글 수정에 실패했습니다.");
+                    });
+                }
+            });
+        });
+
+        // 🔹 폼 제출 시 URL 처리
+        document.querySelectorAll("form").forEach(form => {
+            if (form.action && form.action.includes("/comments")) {
+                form.addEventListener("submit", function(event) {
+                    // 기존 액션을 유지하되, 제출 후 처리할 것이 있으면 여기에 추가
+                    console.log("댓글 관련 폼 제출:", form.action);
+                });
+            }
+        });
+    });
+</script>
+
+<!--Layout 필수 자바스크립트 경로-->
+<!-- base:js -->
+<script src="/vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<script src="/vendors/chart.js/Chart.min.js"></script>
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+<script src="/js/off-canvas.js"></script>
+<script src="/js/hoverable-collapse.js"></script>
+<script src="/js/template.js"></script>
+<!-- endinject -->
+<!-- plugin js for this page -->
+<script src="/js/jquery.cookie.js" type="text/javascript"></script>
+<!-- End plugin js for this page -->
+<!-- Custom js for this page-->
+<script src="/js/dashboard.js"></script>
+<!-- End custom js for this page-->
+
+</body>
+</html>
