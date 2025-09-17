@@ -113,10 +113,12 @@
                             <td th:utext="${#temporals.format(globalNotice.createdDate, 'yyyy-MM-dd HH:mm')}"></td>
                         </tr>
                         <!-- 컨트롤러에서 모델에 담은 noticeBoards 리스트를 반복 처리 -->
-                        <tr th:each="notice : ${noticeBoards}"
+                        <tr th:each="notice : ${noticeBoards}" style="cursor:pointer;"
                             th:onclick="|window.location.href='@{/projects/{projectId}/board/noticeboard/{id}(id=${notice.id}, projectId=${projectId})}'|">
                             <td th:text="${notice.id}">1</td>
-                            <td th:text="${notice.title}">제목</td>
+                            <td>
+                                <span th:text="${notice.title}">제목</span>
+                            </td>
                             <td th:text="${notice.cName}">작성자</td>
                             <td th:utext="${#temporals.format(notice.createdDate, 'yyyy-MM-dd HH:mm')}"></td>
                         </tr>

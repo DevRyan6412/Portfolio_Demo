@@ -39,3 +39,4 @@ out/
 /src/main/resources/application.properties
 ### application.properties ignore ###
 /src/main/resources/goottdemoapp-firebase-adminsdk-fbsvc-ab45460e88.json
+/src/main/resources/fir-chat-860e8-firebase-adminsdk-fbsvc-1ba391effd.json

@@ -24,7 +24,7 @@ public class EmailService {
 
     public void sendInvitationEmail(Invitation invitation, Project project) {
         String subject = "프로젝트 초대 메일";
-//        String url = "http://goottproject2-env.eba-buwhqs5i.us-east-2.elasticbeanstalk.com/projects/" + project.getId() +
+//AWS        String url = "http://goottproject2-env.eba-buwhqs5i.us-east-2.elasticbeanstalk.com/projects/" + project.getId() +
         String url = "http://localhost:5000/projects/" + project.getId() +
                 "/management/invitations/accept?token=" + invitation.getToken();
         // HTML 본문에 a 태그를 사용하여 클릭 가능한 링크 생성
