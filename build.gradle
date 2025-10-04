@@ -81,3 +81,7 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+// bootjar 빌드시 application_secret.properties 제외
+tasks.named('processResources') {
+    exclude 'application_secret.properties'
+}
