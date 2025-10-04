@@ -26,7 +26,7 @@ public class EmailService {
         String subject = "프로젝트 초대 메일";
 //        String url = "http://goottproject2-env.eba-buwhqs5i.us-east-2.elasticbeanstalk.com/projects/" + project.getId() +
         //AWS
-        String url = "http://ec2-54-180-30-69.ap-northeast-2.compute.amazonaws.com:5000/projects/" + project.getId() +
+        String url = "http://alb-demo-public-1294612864.ap-northeast-2.elb.amazonaws.com/projects/" + project.getId() +
         //Local
 //        String url = "http://localhost:5000/projects/" + project.getId() +
                 "/management/invitations/accept?token=" + invitation.getToken();
